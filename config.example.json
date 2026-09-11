@@ -1,0 +1,31 @@
+{
+  "listenAddr": ":8443",
+  "tlsCertFile": "/etc/a2a-tls/tls.crt",
+  "tlsKeyFile": "/etc/a2a-tls/tls.key",
+  "publicURL": "https://agent.example.com",
+  "orkaURL": "http://orka-api.orka-system.svc:8080",
+  "namespace": "demo",
+  "gateway": "a2a",
+  "binding": "assistant",
+  "agent": "assistant",
+  "accountId": "account",
+  "contextId": "route",
+  "senderId": "caller",
+  "clientTokenFile": "/etc/a2a-client/token",
+  "inboundTokenFile": "/etc/a2a-inbound/token",
+  "outboundTokenFile": "/etc/a2a-outbound/token",
+  "readTokenFile": "/var/run/secrets/kubernetes.io/serviceaccount/token",
+  "card": {
+    "name": "Reviewed assistant",
+    "description": "A text assistant operated through Orka's gateway.",
+    "version": "1.0.0",
+    "skills": [
+      {
+        "id": "answer",
+        "name": "Answer",
+        "description": "Answer text questions using the configured Agent.",
+        "tags": ["text"]
+      }
+    ]
+  }
+}
