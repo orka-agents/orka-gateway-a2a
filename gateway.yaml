@@ -1,0 +1,53 @@
+# Install after creating the demo namespace and the runtime-backed assistant Agent.
+# Secrets, the adapter Deployment, and its selector-backed Service are operator-owned.
+apiVersion: gateway.orka.ai/v1alpha1
+kind: GatewayClass
+metadata:
+  name: a2a-example
+spec:
+  contractVersion: orka.gateway.v1
+  category: http
+  capabilities:
+    inboundText: true
+    outboundText: true
+    threads: true
+    senderIdentity: true
+    idempotentDelivery: true
+---
+apiVersion: gateway.orka.ai/v1alpha1
+kind: Gateway
+metadata:
+  name: a2a
+  namespace: demo
+spec:
+  gatewayClassName: a2a-example
+  adapter:
+    serviceRef:
+      name: a2a-gateway
+      port: 8443
+  inboundAuthRef:
+    name: a2a-inbound
+    key: token
+  outboundAuthRef:
+    name: a2a-outbound
+    key: token
+---
+apiVersion: gateway.orka.ai/v1alpha1
+kind: GatewayBinding
+metadata:
+  name: assistant
+  namespace: demo
+spec:
+  gatewayRef:
+    name: a2a
+  agentRef:
+    name: assistant
+  match:
+    accountId: account
+    contextId: route
+    senderId: caller
+  senderPolicy:
+    mode: allowlist
+    allowedSenderIds: [caller]
+  session:
+    mode: thread-sender

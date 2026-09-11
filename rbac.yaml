@@ -1,0 +1,43 @@
+# Read-only Orka API caller. No Task/Session/Secret reads or resource mutation.
+# gatewayevents/gatewaydeliveries are Orka API authorization resources, not CRDs.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: a2a-gateway
+  namespace: demo
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: a2a-gateway-reader
+  namespace: demo
+rules:
+  - apiGroups: [core.orka.ai]
+    resources: [agents]
+    resourceNames: [assistant]
+    verbs: [get]
+  - apiGroups: [gateway.orka.ai]
+    resources: [gateways]
+    resourceNames: [a2a]
+    verbs: [get]
+  - apiGroups: [gateway.orka.ai]
+    resources: [gatewaybindings]
+    resourceNames: [assistant]
+    verbs: [get]
+  - apiGroups: [gateway.orka.ai]
+    resources: [gatewayevents, gatewaydeliveries]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: a2a-gateway-reader
+  namespace: demo
+subjects:
+  - kind: ServiceAccount
+    name: a2a-gateway
+    namespace: demo
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: a2a-gateway-reader
