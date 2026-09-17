@@ -6,9 +6,11 @@
 
 Use Go 1.25 or newer and a working Orka installation with gateway CRDs, a persistent
 gateway ledger, and the authenticated operator HTTP API enabled. Provision a
-runtime-backed Agent named `assistant` in `demo`, or change the matching names in
-the configuration and manifests. Native `type: ai` Agents need additional upstream
-work; check [Compatibility](compatibility.md) before choosing that path.
+runtime-backed or native Agent named `assistant` in `demo`, or change the matching
+names in the configuration and manifests. For a native Agent without `spec.runtime`,
+use an Orka build containing merged PRs #564 and #565; the exact tested upstream
+revision and live proof are in [Compatibility](compatibility.md). No published
+release or image tag is assumed to include those changes.
 
 [`config.example.json`](../config.example.json), [`gateway.yaml`](../gateway.yaml),
 and [`rbac.yaml`](../rbac.yaml) are small wiring examples, not a turnkey cluster

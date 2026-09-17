@@ -54,9 +54,10 @@ at the Orka boundary; no cluster, credentials, or model service is needed.
 ### Connect to Orka
 
 You need a working Agent, the gateway resources, and access to Orka's operator
-API. The runtime-backed path uses Orka's existing gateway implementation; native
-`type: ai` Agents still need the open upstream changes listed in
-[Compatibility](docs/compatibility.md).
+API. Native Agents without a runtime are supported on upstream Orka builds
+containing merged PRs #564 and #565; runtime-backed Agents keep their existing
+path. See [Compatibility](docs/compatibility.md) for the tested revisions and
+merged-code live proof, rather than assuming a published release includes them.
 
 Follow [Getting started](docs/getting-started.md) to review
 [`config.example.json`](config.example.json), provision the four credential files
