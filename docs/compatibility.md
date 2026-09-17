@@ -9,23 +9,22 @@
 | Go | 1.25 or newer; CI covers 1.25.x and Orka's current 1.27.x |
 | Official A2A Go SDK | `github.com/a2aproject/a2a-go/v2` pinned to **v2.5.0** |
 | A2A wire protocol | **1.0**, JSON-RPC, the [documented text-only subset](protocol.md); not full conformance |
-| Orka gateway contract | `orka.gateway.v1` ingress/callback and raw operator event/delivery JSON, checked against Orka main at **`7a279c40`** |
+| Orka gateway contract | `orka.gateway.v1` ingress/callback and raw operator event/delivery JSON, exercised against Orka main at **[`f97724a7`](https://github.com/orka-agents/orka/commit/f97724a772b6c09be39749ddf01795bd0a9ce571)** |
 | Runtime-backed Agents | Use Orka's existing gateway path; provision a working runtime-backed Agent and matching route |
-| Native `type: ai` Agents without a runtime | Require the open native gateway [PR #564](https://github.com/orka-agents/orka/pull/564) and the gateway/Session ownership prerequisite subset tracked in [#313](https://github.com/orka-agents/orka/issues/313) |
+| Native `type: ai` Tasks for Agents without a runtime | Supported by merged [PR #564](https://github.com/orka-agents/orka/pull/564), using the Session ownership fix merged in [#565](https://github.com/orka-agents/orka/pull/565); both are included in the tested Orka revision |
 
-This is **not** a blanket compatibility claim for every Orka main revision or the
-latest published Orka release, v0.1.3. The Orka contract baseline above and the
-historical native-AI run below are different checkpoints. Recheck the contract
-when upgrading Orka; its [release status](https://github.com/orka-agents/orka/blob/main/website/docs/reference/release-status.md)
+This is **not** a blanket compatibility claim for every Orka main revision or
+published release. Build Orka from the tested revision for this native path; no
+published release or image tag is asserted to contain these changes. Recheck the
+contract when upgrading Orka; its [release status](https://github.com/orka-agents/orka/blob/main/website/docs/reference/release-status.md)
 explains the difference between release snapshots and main.
 
 Orka must have the gateway CRDs, persistent gateway ledger, and authenticated
 operator HTTP API enabled. The adapter's small HTTP projections are in
 [`gateway.go`](../gateway.go); it does not import the controller's internal
 packages. No controller or native-dispatch changes are included in this repository.
-PR #564 and #313 remain open; installing this adapter does not make native gateway
-dispatch available on unmodified main. Only the relevant Session ownership subset
-of #313 was used in the historical run, not that entire workstream.
+No copied prerequisite or unmerged native-dispatch patch is needed at the tested
+revision. Installing this adapter alone does not upgrade an older Orka deployment.
 
 ## Where this adapter came from
 
@@ -51,6 +50,36 @@ They do not prove real model execution, Kubernetes RBAC deployment, image builds
 or general A2A conformance. The separate CI container job checks an image build,
 not a deployed cluster. CI uses no cluster credentials or cloud model calls.
 
+### Merged-code real execution
+
+On **2026-09-17**, standalone adapter main **[`1fbd64ce`](https://github.com/orka-agents/orka-gateway-a2a/commit/1fbd64ce760ac8ae97a9867661475da3794e91f1)**
+was built and deployed with unmodified upstream Orka **`f97724a7`** in a disposable
+kind cluster (Kubernetes **v1.32.2**). The model was local CPU Ollama **0.11.8**,
+**`qwen2.5:3b`** (model ID `357c53fb659c`). Normal authenticated admission, persistent
+Orka storage, TLS callbacks and the adapter's projected ServiceAccount were enabled.
+
+The official SDK client made **27 calls including polling**, producing **two real
+native Tasks**, not 27 executions:
+
+- Discovery and an immediate send followed by `GetTask` returned the first model
+  answer, `cedar comet`.
+- A fresh message ID with the same A2A context asked for the remembered phrase;
+  blocking send returned `cedar comet` from a different Task sharing the Session.
+- Identical retries before and after completion retained the original Task identity.
+- Both answers matched the actual Task UIDs and final durable deliveries; callbacks
+  were acknowledged through the real outbox.
+- `GetTask` returned the same completed result after restarting only the adapter.
+- Seven verified-TLS/authentication probes and ten least-read RBAC checks passed.
+  Running controller, worker, model and adapter image identities matched the
+  digest-pinned builds.
+
+Both Tasks succeeded. The cluster, local registry and port-forwards were removed.
+No paid model API or cloud resources were used; local compute/storage costs were
+not measured. This proves the native text path at those revisions, **not** the
+runtime-provider matrix, full A2A conformance, production readiness or enforcement
+of NetworkPolicies by kind's default CNI. Private credentials and operational logs
+are not distributed with this repository.
+
 ### Historical real execution
 
 Before the standalone import, the original module at **`fccc1759`** was exercised
@@ -61,10 +90,9 @@ messages, and checked deduplication and adapter restart behavior against Orka's
 durable ledger.
 
 That is evidence for the **original module and those exact local Orka revisions**.
-It is not new live-cluster proof for a binary built from this repository, does not
-mean the open upstream prerequisites have merged, and does not establish general
-A2A conformance or production readiness. A new live check must use the real ledger
-and actual Task output, not fixture completion. Private credentials, transcripts,
+It is separate from the merged-code run above and does not establish general A2A
+conformance or production readiness. Future live checks must likewise use the real
+ledger and actual Task output, not fixture completion. Private credentials, transcripts,
 and operational logs are not distributed with this repository.
 
 ### Operational limits
